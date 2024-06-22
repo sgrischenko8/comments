@@ -1,0 +1,50 @@
+version: "3"
+
+services:
+  mysql:
+    image: mysql:8.0.37
+    environment:
+      MYSQL_ROOT_PASSWORD: santacarmen
+      MYSQL_DATABASE: db1
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  server:
+    image: server
+    build: ./server
+    environment:
+      NODE_ENV: development
+      DATABASE_HOST: mysql
+      DATABASE_USER: myuser
+      DATABASE_PASSWORD: mypassword
+      DATABASE_NAME: db1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3000:3000"
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+
+  client:
+    image: client
+    build: ./client
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - server
+
+volumes:
+  mysql-data:
